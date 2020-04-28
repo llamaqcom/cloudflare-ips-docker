@@ -65,7 +65,7 @@ echo "real_ip_header CF-Connecting-IP;" >> $CF_NGINX
 # nftables
 echo_header $CF_NFTABLES
 awk '{ print "tcp dport https ip saddr " $0 " counter accept comment \"accept CloudFlare\"" }' $CF_IP4 >> $CF_NFTABLES
-awk '{ print "tcp dport https ip saddr " $0 " counter accept comment \"accept CloudFlare\"" }' $CF_IP6 >> $CF_NFTABLES
+awk '{ print "tcp dport https ip6 saddr " $0 " counter accept comment \"accept CloudFlare\"" }' $CF_IP6 >> $CF_NFTABLES
 
 # iptables
 echo_header $CF_IPTABLES
