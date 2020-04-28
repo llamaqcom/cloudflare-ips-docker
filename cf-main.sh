@@ -10,6 +10,8 @@ export CF_IP6="/opt/cloudflare-ips/ips-v6.txt"
 
 export CF_NGINX="/opt/cloudflare-ips/cf-nginx.conf"
 export CF_NFTABLES="/opt/cloudflare-ips/cf-nftables.nft"
+export CF_IPTABLES="/opt/cloudflare-ips/cf-iptables"
+export CF_IP6TABLES="/opt/cloudflare-ips/cf-ip6tables"
 
 # Temporary files
 export CF_TEMP_IP4="/tmp/ips-v4.txt"
@@ -25,15 +27,17 @@ do
   if $(dirname "$0")/cf-update.sh; then
     echo $(date +%s) > /tmp/healthcheck
     echo "[$(date +%s.%N)] Task completed."
+    sleep_time=$CF_INTERVAL
   else
     echo "[$(date +%s.%N)] Task failed."
+    sleep_time=30
   fi
 
   # Remove the temporary files
   test -f $CF_TEMP_IP4 && rm $CF_TEMP_IP4
   test -f $CF_TEMP_IP6 && rm $CF_TEMP_IP6
 
-  sleep $CF_INTERVAL
+  sleep $sleep_time
 done
 
 #killall -HUP nginx
