@@ -42,7 +42,7 @@ echo "Credentials used by worker processes: user $user($PUID), group $group($PGI
 ##
 
 test -f /tmp/healthcheck && rm /tmp/healthcheck
-#chown -R $user:$group /opt/cloudflare
+#chown -R $user:$group /opt/cloudflare-ips
 
 ##
 # Start Main Loop

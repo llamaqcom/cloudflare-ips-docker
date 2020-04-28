@@ -6,7 +6,7 @@ RUN apt-get update \
     gosu curl ca-certificates ipv6calc \
   && apt-get -y clean && apt-get purge -y --auto-remove && rm -rf /var/lib/apt/lists/*
 
-VOLUME /opt/cloudflare
+VOLUME /opt/cloudflare-ips
 ENV PUID=1000 PGID=1000 CF_INTERVAL=300
 
 ADD VERSION .
