@@ -3,18 +3,6 @@
 ## Partially based on Marek Bosman's script:
 ##  https://www.marekbosman.com/site/automatic-update-of-cloudflare-ip-addresses-in-nginx/
 
-# Location of the nginx config file that contains the CloudFlare IP addresses.
-CF_NGINX_CONFIG="/opt/cloudflare/nginx.conf"
-
-# The URLs with the actual IP addresses used by CloudFlare.
-CF_URL_IP4="https://www.cloudflare.com/ips-v4"
-CF_URL_IP6="https://www.cloudflare.com/ips-v6"
-
-# Temporary files
-CF_NGINX_TEMP="/opt/cloudflare/nginx.tmp"
-CF_TEMP_IP4="/opt/cloudflare/ips-v4.txt"
-CF_TEMP_IP6="/opt/cloudflare/ips-v6.txt"
-
 # Download ip lists or fail
 curl --silent --show-error --output $CF_TEMP_IP4 $CF_URL_IP4 || exit 1
 curl --silent --show-error --output $CF_TEMP_IP6 $CF_URL_IP6 || exit 1
@@ -22,6 +10,14 @@ curl --silent --show-error --output $CF_TEMP_IP6 $CF_URL_IP6 || exit 1
 # Sort ip lists (just in case some day cloudflare would rotate IPs and add comments or empty lines)
 cat $CF_TEMP_IP4 | sed '/^[ \t]*#.*$/d' | sed -r '/^\s*$/d' | sort | tee $CF_TEMP_IP4 >/dev/null
 cat $CF_TEMP_IP6 | sed '/^[ \t]*#.*$/d' | sed -r '/^\s*$/d' | sort | tee $CF_TEMP_IP6 >/dev/null
+
+# Check if CloudFlare IP addresses have changed
+if cmp --silent $CF_TEMP_IP4 $CF_IP4; then
+  if cmp --silent $CF_TEMP_IP6 $CF_IP6; then
+    echo "CloudFlare IP addresses have not changed."
+    exit 0
+  fi
+fi
 
 ##
 # Validate IPs
@@ -41,40 +37,28 @@ while IFS='' read -r cidr; do
   ipv6calc --quiet "$cidr" >/dev/null || exit 1
 done < $CF_TEMP_IP6
 
-##
-# Generate the new config file.
-##
-
-echo "# CloudFlare IP Ranges" > $CF_NGINX_TEMP
-echo "" >> $CF_NGINX_TEMP
-
-echo "# - IPv4 ($CF_URL_IP4)" >> $CF_NGINX_TEMP
-while IFS='' read -r cidr; do
-  echo "set_real_ip_from $cidr;" >> $CF_NGINX_TEMP
-done < $CF_TEMP_IP4
-echo "" >> $CF_NGINX_TEMP
-
-echo "# - IPv6 ($CF_URL_IP6)" >> $CF_NGINX_TEMP
-while IFS='' read -r cidr; do
-  echo "set_real_ip_from $cidr;" >> $CF_NGINX_TEMP
-done < $CF_TEMP_IP6
-echo "" >> $CF_NGINX_TEMP
-
-echo "real_ip_header CF-Connecting-IP;" >> $CF_NGINX_TEMP
-echo "" >> $CF_NGINX_TEMP
+# Replace old CloudFlare IP addresses with new ones
+cp $CF_TEMP_IP4 $CF_IP4
+cp $CF_TEMP_IP6 $CF_IP6
 
 ##
-# Check if configs are identical (i.e. to avoid trigger needless services restart)
+# Generate the new config files for various services
 ##
 
-if cmp --silent $CF_NGINX_TEMP $CF_NGINX_CONFIG; then
-  echo "No updates."
-else
-  cp $CF_NGINX_TEMP $CF_NGINX_CONFIG
-  echo "Update success."
-fi
+# nginx
+echo "# CloudFlare IP Ranges" > $CF_NGINX
+echo "# Generated at $(date) by $0" >> $CF_NGINX
+echo "" >> $CF_NGINX
+awk '{ print "set_real_ip_from " $0 ";" }' $CF_IP4 >> $CF_NGINX
+awk '{ print "set_real_ip_from " $0 ";" }' $CF_IP6 >> $CF_NGINX
+echo "real_ip_header CF-Connecting-IP;" >> $CF_NGINX
 
-# Remove the temporary files.
-rm $CF_TEMP_IP4 $CF_TEMP_IP6 $CF_NGINX_TEMP
+# nftables
+echo "# CloudFlare IP Ranges" > $CF_NFTABLES
+echo "# Generated at $(date) by $0" >> $CF_NFTABLES
+echo "" >> $CF_NFTABLES
+awk '{ print "tcp dport https ip saddr " $0 " counter accept comment \"accept CloudFlare\"" }' $CF_IP4 >> $CF_NFTABLES
+awk '{ print "tcp dport https ip saddr " $0 " counter accept comment \"accept CloudFlare\"" }' $CF_IP6 >> $CF_NFTABLES
 
+echo "CloudFlare IP addresses updated successfully."
 exit 0
