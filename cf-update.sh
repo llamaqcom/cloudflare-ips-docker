@@ -7,6 +7,10 @@
 curl --silent --show-error --output $CF_TEMP_IP4 $CF_URL_IP4 || exit 1
 curl --silent --show-error --output $CF_TEMP_IP6 $CF_URL_IP6 || exit 1
 
+# Files should exist and be not empty (extra check)
+test -s $CF_TEMP_IP4 || exit 1
+test -s $CF_TEMP_IP6 || exit 1
+
 # Sort ip lists (just in case some day cloudflare would rotate IPs and add comments or empty lines)
 cat $CF_TEMP_IP4 | sed '/^[ \t]*#.*$/d' | sed -r '/^\s*$/d' | sort | tee $CF_TEMP_IP4 >/dev/null
 cat $CF_TEMP_IP6 | sed '/^[ \t]*#.*$/d' | sed -r '/^\s*$/d' | sort | tee $CF_TEMP_IP6 >/dev/null
