@@ -18,6 +18,7 @@ Here is a basic snippet to help you get started creating a container.
 docker run -dit --restart unless-stopped \
     --name cloudflare-ips \
     -v </path/to/config/dir>:/opt/cloudflare-ips \
+    -e CF_INTERVAL=300 \
     -e PUID=1000 \
     -e PGID=1000 \
     llamaq/cloudflare-ips
