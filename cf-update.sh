@@ -27,12 +27,6 @@ fi
 # Validate IPs
 ##
 
-function isvalidip() {
-  ipcalc "$1" | grep INVALID >/dev/null
-  [[ $? -eq 0 ]] && return 1
-  return 0
-}
-
 while IFS='' read -r cidr; do
   ipv6calc --quiet "$cidr" >/dev/null || exit 1
 done < $CF_TEMP_IP4
