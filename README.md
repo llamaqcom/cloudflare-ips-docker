@@ -1,9 +1,9 @@
 # Cloudflare IPs Monitoring
 
-Monitor Cloudflare IP range for changes and auto-update configs of different services.
+Monitor Cloudflare IP range for changes and auto-update configs for various services.
 
 Cloudflare IP range does not change too frequently. Nevertheless, Cloudflare recommends monitoring that list regularly.
-This container monitors Cloudflare IP range for changes and auto-updates configs for services.
+This container monitors Cloudflare IP range for changes and auto-updates configuration of several services.
 Currently, these services are supported:
 
 - **nginx** (*set_real_ip_from*, *real_ip_header* directives)
