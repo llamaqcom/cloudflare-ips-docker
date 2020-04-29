@@ -2,6 +2,8 @@
 
 Monitor Cloudflare IP range for changes and auto-update configs for various services.
 
+> :warning: **WARNING**: This container is no longer in active development. Consider using alternatives.
+
 Cloudflare IP range does not change too frequently. Nevertheless, Cloudflare recommends monitoring that list on a regular basis.
 This container monitors Cloudflare IP range for changes and auto-updates configuration of several services.
 Currently, these services are supported:
